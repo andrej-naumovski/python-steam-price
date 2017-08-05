@@ -1,16 +1,16 @@
 import time
-
+from market import config
 from utils.proxy_checker import ProxyChecker
 from market.steam_market import SteamMarket
 from utils.constants import Game
+from utils.proxy_fetcher import ProxyFetcher
+
 
 steam_market = SteamMarket()
 
-item_names = steam_market.get_item_names(Game.CSGO)
-
 
 def main():
-    print(Game.CSGO)
+    item_names = steam_market.get_item_names(Game.CSGO)
     timer = time.time()
     proxy_check = ProxyChecker("Proxy checker")
     proxy_check.start()

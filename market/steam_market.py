@@ -8,9 +8,14 @@ import time
 class SteamMarket:
     def __init__(self):
         self.proxies = {
-            'http': 'http://173.224.218.59:80'
+            'http': PROXY_LIST[0]
         }
         self.item_dict = None
+        EXPIRED_PROXY_LIST.append({
+            'proxy': PROXY_LIST[0],
+            'timestamp': time.time()
+        })
+        PROXY_LIST.pop(0)
 
     def get_item_names(self, appid):
         url = API + str(appid) + '?key=' + API_KEY
@@ -37,7 +42,10 @@ class SteamMarket:
                 'proxy': self.proxies['http'],
                 'timestamp': time.time()
             })
-            self.proxies['http'] = PROXY_LIST.pop(0)
+            self.proxies = {
+                'http': PROXY_LIST.pop(0)
+            }
+            print('Current proxy: ' + self.proxies['http'])
             response = requests.get(url, self.proxies)
         res_json = response.json()
         prices = SteamMarket.get_parsed_html_price_array(res_json['results_html'])
@@ -67,4 +75,6 @@ class SteamMarket:
         price_str = price_str.strip().replace(',', '.').replace(' ', '')
         if price_str[-2] == '-':
             return float(price_str.split('.')[0])
+        if price_str[:-1] == 'Sold':
+            return 0
         return float(price_str[:-1])

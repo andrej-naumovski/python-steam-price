@@ -19,9 +19,11 @@ def check_proxy_timestamp(thread_id):
         i = 0
         if len(EXPIRED_PROXY_LIST) == 0:
             print(thread_id + ': No expired proxies')
+        else:
+            print('Already expired proxies:')
         for proxy in EXPIRED_PROXY_LIST:
             print(proxy)
-            if time.time() - proxy['timestamp'] > 5:
+            if time.time() - proxy['timestamp'] > 10:
                 PROXY_LIST.append(proxy['proxy'])
                 EXPIRED_PROXY_LIST.pop(i)
             else:
