@@ -11,7 +11,9 @@ class ProxyFetcher:
         results = self.cursor.fetchall()
         proxy_list = []
         for row in results:
-            proxy_list.append(ProxyFetcher.build_proxy_uri(row))
+            proxy_list.append({
+                'http': ProxyFetcher.build_proxy_uri(row)
+            })
         return proxy_list
 
     @staticmethod

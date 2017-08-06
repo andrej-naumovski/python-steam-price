@@ -3,7 +3,6 @@ from market import config
 from utils.proxy_checker import ProxyChecker
 from market.steam_market import SteamMarket
 from utils.constants import Game
-from utils.proxy_fetcher import ProxyFetcher
 
 
 steam_market = SteamMarket()
@@ -12,8 +11,8 @@ steam_market = SteamMarket()
 def main():
     item_names = steam_market.get_item_names(Game.CSGO)
     timer = time.time()
-    proxy_check = ProxyChecker("Proxy checker")
-    proxy_check.start()
+    # proxy_check = ProxyChecker("Proxy checker")
+    # proxy_check.start()
     for item in item_names[:60]:
         price = steam_market.get_item_price(Game.CSGO, item)
         while price is None:

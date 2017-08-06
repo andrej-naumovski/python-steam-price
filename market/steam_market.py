@@ -3,19 +3,13 @@ import requests
 from bs4 import BeautifulSoup
 import numpy
 import time
+import random
 
 
 class SteamMarket:
     def __init__(self):
-        self.proxies = {
-            'http': PROXY_LIST[0]
-        }
+        self.proxies = random.choice(PROXY_LIST)
         self.item_dict = None
-        EXPIRED_PROXY_LIST.append({
-            'proxy': PROXY_LIST[0],
-            'timestamp': time.time()
-        })
-        PROXY_LIST.pop(0)
 
     def get_item_names(self, appid):
         url = API + str(appid) + '?key=' + API_KEY
@@ -33,21 +27,49 @@ class SteamMarket:
 
     def get_item_price(self, appid, item_name):
         url = SteamMarket.build_steam_url(appid, item_name)
-        response = requests.get(url, self.proxies)
-        while response.status_code < 200 or response.status_code >= 300:
-            if len(PROXY_LIST) == 0:
-                print('No more proxies left. Try again later.')
-                return None
-            EXPIRED_PROXY_LIST.append({
-                'proxy': self.proxies['http'],
-                'timestamp': time.time()
-            })
-            self.proxies = {
-                'http': PROXY_LIST.pop(0)
-            }
-            print('Current proxy: ' + self.proxies['http'])
-            response = requests.get(url, self.proxies)
-        res_json = response.json()
+        success = False
+        print('Here')
+        while not success:
+            try:
+                response = requests.get(url, proxies=self.proxies, timeout=0.8)
+                success = True
+            except:
+                print('First call exception')
+                self.proxies = random.choice(PROXY_LIST)
+                success = False
+        print('Here2')
+        res_json = None
+        while res_json is None:
+            print(response.status_code)
+            if not success:
+                self.proxies = random.choice(PROXY_LIST)
+                second_success = False
+                while not second_success:
+                    try:
+                        second_success = True
+                        response = requests.get(url, proxies=self.proxies, timeout=0.8)
+                    except:
+                        self.proxies = random.choice(PROXY_LIST)
+                        second_success = False
+            while response.status_code < 200 or response.status_code >= 300:
+                self.proxies = random.choice(PROXY_LIST)
+                print('Current proxy: ' + self.proxies['http'])
+                #time.sleep(2)
+                success = False
+                while not success:
+                    try:
+                        response = requests.get(url, proxies=self.proxies, timeout=0.8)
+                        success = True
+                    except:
+                        print('Second call exception')
+                        self.proxies = random.choice(PROXY_LIST)
+                        success = False
+            res_json = None
+            try:
+                res_json = response.json()
+            except ValueError:
+                success = False
+                res_json = None
         prices = SteamMarket.get_parsed_html_price_array(res_json['results_html'])
         price = 0
         if len(prices) > 0:

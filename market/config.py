@@ -10,4 +10,5 @@ APP_IDS = {
 }
 STEAM_API_URL = 'http://steamcommunity.com/market/listings/'
 PROXY_LIST = proxy_fetcher.fetch_proxy_list()
+print(PROXY_LIST)
 EXPIRED_PROXY_LIST = []
