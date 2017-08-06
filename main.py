@@ -20,7 +20,7 @@ def main():
         if i < 11:
             workers.append(Worker('worker ' + str(i + 1), Game.CSGO, item_names[i * segment:(i+1) * segment]))
         else:
-            workers.append(Worker('worker 12', Game.CSGO, item_names[i * segment, len(item_names)]))
+            workers.append(Worker('worker 12', Game.CSGO, item_names[i * segment:len(item_names)]))
     for i in range(0, 12):
         workers[i].start()
     for i in range(0, 12):
