@@ -69,6 +69,7 @@ class SteamMarket:
                 res_json = response.json()
             except ValueError:
                 success = False
+                print(response.text)
                 res_json = None
         prices = SteamMarket.get_parsed_html_price_array(res_json['results_html'])
         price = 0
