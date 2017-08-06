@@ -13,12 +13,17 @@ def main():
     timer = time.time()
     # proxy_check = ProxyChecker("Proxy checker")
     # proxy_check.start()
+    print((len(item_names) / 12) * 12)
+    segment = int(len(item_names) / 12)
     workers = []
-    for i in range(0, 8):
-        workers.append(Worker('worker ' + str(i + 1), Game.CSGO, item_names[i * 20:(i+1) * 20]))
-    for i in range(0, 8):
+    for i in range(0, 12):
+        if i < 11:
+            workers.append(Worker('worker ' + str(i + 1), Game.CSGO, item_names[i * segment:(i+1) * segment]))
+        else:
+            workers.append(Worker('worker 12', Game.CSGO, item_names[i * segment, len(item_names)]))
+    for i in range(0, 12):
         workers[i].start()
-    for i in range(0, 8):
+    for i in range(0, 12):
         workers[i].join()
     timer = time.time() - timer
     print(timer)
