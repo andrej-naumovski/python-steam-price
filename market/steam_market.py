@@ -1,9 +1,12 @@
-from .config import API, API_KEY, STEAM_API_URL, PROXY_LIST, EXPIRED_PROXY_LIST
+from .config import API, API_KEY, STEAM_API_URL, PROXY_LIST, EXPIRED_PROXY_LIST, STEAM_IMAGE_URL
 import requests
 from bs4 import BeautifulSoup
 import numpy
 import time
 import random
+import math
+from models.item import *
+from utils.constants import Csgo
 
 
 class SteamMarket:
@@ -71,12 +74,54 @@ class SteamMarket:
                 success = False
                 print(response.text)
                 res_json = None
+
         prices = SteamMarket.get_parsed_html_price_array(res_json['results_html'])
         price = 0
+
+        item = None
+
+        item_assets = res_json['assets'][str(appid)]['2']
+        asset = next(iter(item_assets.values()))
+
+        image_url = STEAM_IMAGE_URL + asset['icon_url_large']
+
         if len(prices) > 0:
             price = numpy.nanmedian(prices)
-        print(item_name + ': ' + str(price))
-        return price
+
+        if appid == Game.CSGO:
+            exterior = None
+            item_description = None
+            item_rarity = None
+
+            item_desc_value = asset['descriptions'][0]['value']
+
+            if item_desc_value.startswith('Exterior'):
+                exterior = item_desc_value.split(':')[-1].strip()
+                item_description = asset['descriptions'][2]['value']
+                item_type = asset['type'].split()
+                if item_type[0].isalpha():
+                    item_rarity = item_type[0]
+                else:
+                    item_rarity = item_type[1]
+            else:
+                exterior = asset['type'].split(' ')[-1]
+                item_description = item_desc_value
+                item_rarity = ''.join(asset['type'].split()[:-1])
+
+            print(exterior)
+            print(item_description)
+            print(item_rarity)
+            item = ItemCsgo.create(
+                market_name=item_name,
+                current_price=price,
+                image_url=image_url,
+                exterior=exterior,
+                description=item_description,
+                rarity=item_rarity
+            )
+
+        print("%s: %.4f" % (item_name, price))
+        return item
 
     @staticmethod
     def build_steam_url(appid, item_name):

@@ -10,6 +10,7 @@ steam_market = SteamMarket()
 
 def main():
     item_names = steam_market.get_item_names(Game.CSGO)
+    print(item_names)
     timer = time.time()
     # proxy_check = ProxyChecker("Proxy checker")
     # proxy_check.start()
