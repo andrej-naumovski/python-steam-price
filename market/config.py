@@ -1,6 +1,6 @@
 from utils.proxy_fetcher import ProxyFetcher
 
-proxy_fetcher = ProxyFetcher('23.95.228.165', 'andrej', 'andrejnaumovski', 'steam')
+proxy_fetcher = ProxyFetcher('23.95.228.165', 'root', 'Ceedche123', 'steam')
 
 API = 'https://api.steamapi.io/market/prices/'
 API_KEY = 'cfa4f13d2fac6b5328f2ae1c80206f3f'

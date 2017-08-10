@@ -3,11 +3,11 @@ import MySQLdb
 
 class ProxyFetcher:
     def __init__(self, host, user, password, database):
-        self.connection = MySQLdb.connect(host, user, password, database)
+        self.connection = MySQLdb.Connect(host=host, user=user, passwd=password, db=database, port=3306)
         self.cursor = self.connection.cursor()
 
     def fetch_proxy_list(self):
-        self.cursor.execute('SELECT * FROM proxies LIMIT 70')
+        self.cursor.execute('SELECT * FROM proxies')
         results = self.cursor.fetchall()
         proxy_list = []
         for row in results:

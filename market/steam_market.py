@@ -7,6 +7,7 @@ import random
 import math
 from models.item import *
 from utils.constants import Csgo
+import uuid
 
 
 class SteamMarket:
@@ -80,8 +81,19 @@ class SteamMarket:
 
         item = None
 
-        item_assets = res_json['assets'][str(appid)]['2']
-        asset = next(iter(item_assets.values()))
+        item_assets = res_json.get('assets')
+
+        if item_assets is None:
+            return None
+
+        asset = None
+
+        try:
+            item_assets = item_assets[str(appid)]['2']
+            asset = next(iter(item_assets.values()))
+        except:
+            return None
+
 
         image_url = STEAM_IMAGE_URL + asset['icon_url']
 
@@ -108,14 +120,21 @@ class SteamMarket:
                 item_description = item_desc_value
                 item_rarity = ''.join(asset['type'].split()[:-1])
 
-            item = ItemCsgo.create(
-                market_name=item_name,
-                current_price=price,
-                image_url=image_url,
-                exterior=exterior,
-                description=item_description,
-                rarity=item_rarity
-            )
+            item = None
+
+            try:
+                item = ItemCsgo.objects(market_name=item_name)
+                item.if_exists().update(current_price=price)
+            except:
+                item = ItemCsgo.create(
+                    id=uuid.uuid4(),
+                    market_name=item_name,
+                    current_price=price,
+                    image_url=image_url,
+                    exterior=exterior,
+                    description=item_description,
+                    rarity=item_rarity
+                )
 
         print("Price: %.4f" % price)
         return item
