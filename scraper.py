@@ -4,16 +4,22 @@ from utils.proxy_checker import ProxyChecker
 from market.steam_market import SteamMarket
 from utils.constants import Game
 from market.worker import Worker
+from cassandra.cqlengine.management import sync_table
+from cassandra.cqlengine import connection
+from models.item import ItemCsgo, Item, ItemDota2
 
 steam_market = SteamMarket()
+
+connection.setup(['127.0.0.1'], "scraper", protocol_version=3)
+
+sync_table(Item)
+sync_table(ItemCsgo)
+sync_table(ItemDota2)
 
 
 def main():
     item_names = steam_market.get_item_names(Game.CSGO)
-    print(item_names)
     timer = time.time()
-    # proxy_check = ProxyChecker("Proxy checker")
-    # proxy_check.start()
     print((len(item_names) / 12) * 12)
     segment = int(len(item_names) / 12)
     workers = []
@@ -26,8 +32,11 @@ def main():
         workers[i].start()
     for i in range(0, 12):
         workers[i].join()
+
+    print('Number of items %d' % ItemCsgo.objects.count())
     timer = time.time() - timer
     print(timer)
 
-if __name__ == '__main__':
+
+if __name__ == '__scraper__':
     main()

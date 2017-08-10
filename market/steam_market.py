@@ -28,22 +28,22 @@ class SteamMarket:
             item_names.append(item)
         return item_names
 
-    def get_item_price(self, appid, item_name):
+    def get_item_details(self, appid, item_name):
         url = SteamMarket.build_steam_url(appid, item_name)
         success = False
-        print('Here')
+        # print('Here')
         while not success:
             try:
                 response = requests.get(url, proxies=self.proxies, timeout=0.8)
                 success = True
             except:
-                print('First call exception')
+                # print('First call exception')
                 self.proxies = random.choice(PROXY_LIST)
                 success = False
-        print('Here2')
+        # print('Here2')
         res_json = None
         while res_json is None:
-            print(response.status_code)
+            # print(response.status_code)
             if not success:
                 self.proxies = random.choice(PROXY_LIST)
                 second_success = False
@@ -56,7 +56,7 @@ class SteamMarket:
                         second_success = False
             while response.status_code < 200 or response.status_code >= 300:
                 self.proxies = random.choice(PROXY_LIST)
-                print('Current proxy: ' + self.proxies['http'])
+                # print('Current proxy: ' + self.proxies['http'])
                 #time.sleep(2)
                 success = False
                 while not success:
@@ -64,7 +64,7 @@ class SteamMarket:
                         response = requests.get(url, proxies=self.proxies, timeout=0.8)
                         success = True
                     except:
-                        print('Second call exception')
+                        # print('Second call exception')
                         self.proxies = random.choice(PROXY_LIST)
                         success = False
             res_json = None
@@ -72,7 +72,7 @@ class SteamMarket:
                 res_json = response.json()
             except ValueError:
                 success = False
-                print(response.text)
+                # print(response.text)
                 res_json = None
 
         prices = SteamMarket.get_parsed_html_price_array(res_json['results_html'])
@@ -83,7 +83,7 @@ class SteamMarket:
         item_assets = res_json['assets'][str(appid)]['2']
         asset = next(iter(item_assets.values()))
 
-        image_url = STEAM_IMAGE_URL + asset['icon_url_large']
+        image_url = STEAM_IMAGE_URL + asset['icon_url']
 
         if len(prices) > 0:
             price = numpy.nanmedian(prices)
@@ -108,9 +108,6 @@ class SteamMarket:
                 item_description = item_desc_value
                 item_rarity = ''.join(asset['type'].split()[:-1])
 
-            print(exterior)
-            print(item_description)
-            print(item_rarity)
             item = ItemCsgo.create(
                 market_name=item_name,
                 current_price=price,
@@ -120,7 +117,7 @@ class SteamMarket:
                 rarity=item_rarity
             )
 
-        print("%s: %.4f" % (item_name, price))
+        print("Price: %.4f" % price)
         return item
 
     @staticmethod

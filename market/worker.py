@@ -16,5 +16,5 @@ class Worker(threading.Thread):
             price = None
             while price is None:
                 print('Thread ' + self.id)
-                price = self.market.get_item_price(self.appid, item)
+                price = self.market.get_item_details(self.appid, item)
         print('Thread with id ' + self.id + ' finished')
