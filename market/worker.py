@@ -1,6 +1,11 @@
 import threading
 from market.steam_market import SteamMarket
+import logging
+import market.config
 
+logger = logging.getLogger(__name__)
+
+logging.basicConfig(level=logging.DEBUG, format='%(threadName)s %(message)s')
 
 class Worker(threading.Thread):
     def __init__(self, id, appid, item_list):
@@ -11,10 +16,9 @@ class Worker(threading.Thread):
         self.market = SteamMarket()
 
     def run(self):
-        print('Thread with id ' + self.id + ' started')
+        logger.info('Thread started')
         for item in self.items:
-            price = None
-            while price is None:
-                print('Thread ' + self.id)
-                price = self.market.get_item_details(self.appid, item)
-        print('Thread with id ' + self.id + ' finished')
+            price = self.market.get_item_details(self.appid, item)
+            market.config.CHECKED_ITEMS += 1
+            logger.info("Number of passed items: %d", market.config.CHECKED_ITEMS)
+        logger.info('Thread finished')

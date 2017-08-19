@@ -8,6 +8,10 @@ import math
 from models.item import *
 from utils.constants import Csgo
 import uuid
+import logging
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format='%(threadName)s %(message)s')
 
 
 class SteamMarket:
@@ -39,23 +43,25 @@ class SteamMarket:
                 success = True
             except:
                 # print('First call exception')
+                logger.debug('First call - proxy %s failed', self.proxies['http'])
                 self.proxies = random.choice(PROXY_LIST)
                 success = False
         # print('Here2')
         res_json = None
         while res_json is None:
-            # print(response.status_code)
             if not success:
                 self.proxies = random.choice(PROXY_LIST)
                 second_success = False
                 while not second_success:
                     try:
-                        second_success = True
                         response = requests.get(url, proxies=self.proxies, timeout=0.8)
+                        second_success = True
                     except:
                         self.proxies = random.choice(PROXY_LIST)
+                        logger.debug('Second call - proxy %s failed', self.proxies['http'])
                         second_success = False
             while response.status_code < 200 or response.status_code >= 300:
+                logger.debug('Second call error - status code %d', response.status_code)
                 self.proxies = random.choice(PROXY_LIST)
                 # print('Current proxy: ' + self.proxies['http'])
                 #time.sleep(2)
@@ -66,6 +72,7 @@ class SteamMarket:
                         success = True
                     except:
                         # print('Second call exception')
+                        logger.debug('Third call - proxy %s failed', self.proxies['http'])
                         self.proxies = random.choice(PROXY_LIST)
                         success = False
             res_json = None
@@ -74,6 +81,7 @@ class SteamMarket:
             except ValueError:
                 success = False
                 # print(response.text)
+                logger.debug('Failed parsing, invalid JSON, status code %d', response.status_code)
                 res_json = None
 
         prices = SteamMarket.get_parsed_html_price_array(res_json['results_html'])
@@ -84,6 +92,7 @@ class SteamMarket:
         item_assets = res_json.get('assets')
 
         if item_assets is None:
+            logger.debug('Bad JSON, no item assets for item %s', item_name)
             return None
 
         asset = None
@@ -125,6 +134,7 @@ class SteamMarket:
             try:
                 item = ItemCsgo.objects(market_name=item_name)
                 item.if_exists().update(current_price=price)
+                logger.info('Item exists: %s', item.market_name)
             except:
                 item = ItemCsgo.create(
                     id=uuid.uuid4(),
@@ -135,8 +145,9 @@ class SteamMarket:
                     description=item_description,
                     rarity=item_rarity
                 )
+                logger.info('Item did not exist: %s', item.market_name)
 
-        print("Price: %.4f" % price)
+        logger.info('%s price: %.4f', item_name, price)
         return item
 
     @staticmethod
