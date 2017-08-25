@@ -140,6 +140,9 @@ class SteamMarket:
         prices = SteamMarket.get_parsed_html_price_array(res_json['results_html'])
         price = 0
 
+        if len(res_price_history) == 0:
+            res_price_history.append(0)
+
         res_price_history.reverse()
 
         past_day = []
