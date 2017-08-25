@@ -140,9 +140,6 @@ class SteamMarket:
         prices = SteamMarket.get_parsed_html_price_array(res_json['results_html'])
         price = 0
 
-        if len(res_price_history) == 0:
-            res_price_history.append(0)
-
         res_price_history.reverse()
 
         past_day = []
@@ -163,6 +160,11 @@ class SteamMarket:
                 thirty_days.append(listing[1])
             elif delta.days <= 30:
                 thirty_days.append(listing[1])
+
+        if len(past_day) == 0:
+            past_day.append(0)
+            seven_days.append(0)
+            thirty_days.append(0)
 
         avg_24h_raw = sum(past_day) / len(past_day)
         avg_7d_raw = sum(seven_days) / len(seven_days)
