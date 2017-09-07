@@ -132,14 +132,8 @@ class SteamMarket:
 
         return res_content
 
-    def get_item_details(self, appid, item_name):
-        res_json = self.get_base_item_info(appid, item_name)
-        logger.debug('Passed res_json')
+    def get_item_price_history(self, appid, item_name):
         res_price_history = self.get_price_history(appid, item_name)
-        logger.debug('Passed res_price_history')
-        prices = SteamMarket.get_parsed_html_price_array(res_json['results_html'])
-        price = 0
-
         res_price_history.reverse()
 
         past_day = []
@@ -161,10 +155,18 @@ class SteamMarket:
             elif delta.days <= 30:
                 thirty_days.append(listing[1])
 
+        num_past_day = 0
+        num_30_days = 0
+        num_7_days = 0
+
         if len(past_day) == 0:
             past_day.append(0)
             seven_days.append(0)
             thirty_days.append(0)
+        else:
+            num_past_day = len(past_day)
+            num_7_days = len(seven_days)
+            num_30_days = len(thirty_days)
 
         avg_24h_raw = sum(past_day) / len(past_day)
         avg_7d_raw = sum(seven_days) / len(seven_days)
@@ -175,6 +177,28 @@ class SteamMarket:
         avg_30d = float('{0:.2f}'.format(avg_30d_raw))
 
         avg_daily = len(thirty_days) / 30
+
+        try:
+            item = ItemCsgo.objects().filter(market_name=item_name)
+            item.if_exists().update(
+                avg_7_days=avg_7d,
+                avg_7_days_raw=avg_7d_raw,
+                avg_30_days=avg_30d,
+                avg_30_days_raw=avg_30d_raw,
+                num_sales_24hrs=num_past_day,
+                num_sales_7days=num_7_days,
+                num_sales_30days=num_30_days,
+                avg_daily_volume=avg_daily
+            )
+        except:
+            return None
+        return item
+
+    def get_item_details(self, appid, item_name):
+        res_json = self.get_base_item_info(appid, item_name)
+        logger.debug('Passed res_json')
+        prices = SteamMarket.get_parsed_html_price_array(res_json['results_html'])
+        price = 0
 
         item = None
 
@@ -223,15 +247,8 @@ class SteamMarket:
             try:
                 item = ItemCsgo.objects().filter(market_name=item_name)
                 item.if_exists().update(
-                    current_price=price,
-                    avg_7_days=avg_7d,
-                    avg_7_days_raw=avg_7d_raw,
-                    avg_30_days=avg_30d,
-                    avg_30_days_raw=avg_30d_raw,
-                    num_sales_24hrs=len(past_day),
-                    num_sales_7days=len(seven_days),
-                    num_sales_30days=len(thirty_days),
-                    avg_daily_volume=avg_daily
+                    current_price=price
+
                 )
                 logger.info('Item exists: %s', item.market_name)
             except:
@@ -242,15 +259,7 @@ class SteamMarket:
                     image_url=image_url,
                     exterior=exterior,
                     description=item_description,
-                    rarity=item_rarity,
-                    avg_7_days=avg_7d,
-                    avg_7_days_raw=avg_7d_raw,
-                    avg_30_days=avg_30d,
-                    avg_30_days_raw=avg_30d_raw,
-                    num_sales_24hrs=len(past_day),
-                    num_sales_7days=len(seven_days),
-                    num_sales_30days=len(thirty_days),
-                    avg_daily_volume=avg_daily
+                    rarity=item_rarity
                 )
                 logger.info('Item did not exist: %s', item.market_name)
 
